@@ -1,10 +1,11 @@
 import express from 'express';
-import getCategories from './Controllers/categoriesController.js';
+import {getCategories, insertCategories} from './Controllers/categoriesController.js';
 
 const server = express();
+server.use(express.json());
 
 server.get('/categories', getCategories);
-
+server.post('/categories', insertCategories);
 
 
 server.get('/status', async (req, res) => {
