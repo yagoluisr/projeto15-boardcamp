@@ -1,11 +1,13 @@
 import express from 'express';
-import {getCategories, insertCategories} from './Controllers/categoriesController.js';
+import categoriesRoutes from './Routes/categoriesRoutes.js'
 
 const server = express();
+
 server.use(express.json());
 
-server.get('/categories', getCategories);
-server.post('/categories', insertCategories);
+server.use(categoriesRoutes);
+
+
 
 
 server.get('/status', async (req, res) => {
@@ -13,5 +15,5 @@ server.get('/status', async (req, res) => {
 });
 
 server.listen(4000, () => {
-    console.log('Listenig on port 4000')
+    console.log('Listenig on port 4000');
 });
