@@ -53,3 +53,25 @@ export async function insertCustomer (req, res) {
         res.status(500).send(error.message);
     }
 }
+
+export async function updateCustomer (req, res) {
+    const { name, phone, cpf, birthday } = res.locals.customer;
+    const idCustomer = req.params.id;
+    
+    try {
+        const hasCpfCustomer = await connection.query(
+            'SELECT * FROM customers WHERE cpf = $1', [cpf]
+        );
+
+        if(hasCpfCustomer.rows[0]) return res.sendStatus(409);
+        
+        await connection.query(
+            'UPDATE customers SET name = $1, phone = $2, cpf = $3, birthday = $4 WHERE id = $5;',
+            [name, phone, cpf, birthday, idCustomer]
+        );
+
+        res.sendStatus(200);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+}

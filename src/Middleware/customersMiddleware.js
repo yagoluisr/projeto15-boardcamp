@@ -1,7 +1,5 @@
 import joi from 'joi';
 
-
-
 const insertCustomerSchema = joi.object({
     name: joi.string().empty().required(),
     phone: joi.string().min(10).max(11).empty().required(),
