@@ -32,3 +32,24 @@ export async function getCustomersId (req, res) {
         res.status(500).send(error.message);
     }
 }
+
+export async function insertCustomer (req, res) {
+    const { name, phone, cpf, birthday } = res.locals.customer;
+
+    try {
+        const hasCpfCustomer = await connection.query(
+            'SELECT * FROM customers WHERE cpf = $1', [cpf]
+        );
+
+        if(hasCpfCustomer.rows[0]) return res.sendStatus(409);
+
+        await connection.query(
+            'INSERT INTO customers (name, phone, cpf, birthday) VALUES ($1,$2,$3,$4);',
+            [name, phone, cpf, birthday ]
+        );
+
+        res.sendStatus(201);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+}
