@@ -3,9 +3,11 @@ import categoriesRoutes from './Routes/categoriesRoutes.js'
 import gamesRoutes from './Routes/gamesRoutes.js'
 import customersRoutes from './Routes/customersRoutes.js'
 import rentalsRoutes from './Routes/rentalsRoutes.js'
+import cors from 'cors';
 
 const server = express();
 
+server.use(cors());
 server.use(express.json());
 
 //Rotas de categorias
