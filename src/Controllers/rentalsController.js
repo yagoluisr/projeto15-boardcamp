@@ -53,7 +53,7 @@ export async function getRentals (req, res) {
 export async function insertRental (req, res) {
     const { customerId, gameId, daysRented } = req.body;
 
-    if(typeof(daysRented) === 'string' || daysRented <= 0) return res.sendStatus(400)
+    if(isNaN(Number(daysRented)) || daysRented <= 0) return res.sendStatus(400);
 
     try {
 
@@ -70,7 +70,7 @@ export async function insertRental (req, res) {
         if(!game.rows[0]) return res.sendStatus(400);
 
         const canRent = await connection.query(
-            'SELECT * FROM rentals WHERE "gameId" = $1 ;', [gameId]
+            'SELECT * FROM rentals WHERE "gameId" = $1 AND "returnDate" IS NULL;', [gameId]
         );
 
         if(canRent.rows.length >= game.rows[0].stockTotal) return res.sendStatus(400);
