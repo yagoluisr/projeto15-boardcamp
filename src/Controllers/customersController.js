@@ -63,11 +63,11 @@ export async function updateCustomer (req, res) {
             'SELECT * FROM customers WHERE cpf = $1', [cpf]
         );
 
-        if(hasCpfCustomer.rows[0]) return res.sendStatus(409);
+        if(!hasCpfCustomer.rows[0]) return res.sendStatus(404);
         
         await connection.query(
-            'UPDATE customers SET name = $1, phone = $2, cpf = $3, birthday = $4 WHERE id = $5;',
-            [name, phone, cpf, birthday, idCustomer]
+            'UPDATE customers SET name = $1, phone = $2, birthday = $3 WHERE id = $4;',
+            [name, phone, birthday, idCustomer]
         );
 
         res.sendStatus(200);
