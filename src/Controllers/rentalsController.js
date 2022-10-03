@@ -6,13 +6,13 @@ export async function getRentals (req, res) {
     
     try {
         const rentals = await connection.query(
-            'SELECT rentals.*,customers.id,customers.name AS "customerName",games.id,games.name,games."categoryId",categories.name AS "categoryName" FROM rentals JOIN customers ON rentals."customerId"=customers.id JOIN games ON rentals."gameId"=games.id JOIN categories ON games."categoryId"=categories.id;'
+            'SELECT rentals.*,rentals.id AS "idTable",customers.id,customers.name AS "customerName",games.id,games.name,games."categoryId",categories.name AS "categoryName" FROM rentals JOIN customers ON rentals."customerId"=customers.id JOIN games ON rentals."gameId"=games.id JOIN categories ON games."categoryId"=categories.id;'
         );
         
         const rentalsList = rentals.rows.map( obj => 
             (
                 {
-                    id: obj.id,
+                    id: obj.idTable,
                     customerId: obj.customerId,
                     gameId: obj.gameId,
                     rentDate: dayjs(obj.rentDate).format('YYYY-MM-DD'),
@@ -80,6 +80,40 @@ export async function insertRental (req, res) {
         );
 
         res.sendStatus(201);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+}
+
+export async function finishesRental (req, res) {
+    const { id } = req.params;
+    const today = dayjs().format("YYYY-MM-DD");
+
+    try {
+        const rentalIdFiltered = await connection.query(
+            'SELECT * FROM rentals WHERE id = $1;', [id]
+        );
+        
+        if(!rentalIdFiltered.rows[0]) return res.sendStatus(404);
+
+        if(rentalIdFiltered.rows[0].returnDate != null) return res.sendStatus(400);
+
+        await connection.query(
+            'UPDATE rentals SET "returnDate"=$1 WHERE id=$2', [today,id]
+        );
+
+        const diffInDays = (new Date(today) - new Date(rentalIdFiltered.rows[0].rentDate)) / (1000 * 60 * 60 * 24);
+        
+        if (diffInDays > rentalIdFiltered.rows[0].daysRented) {
+
+            let delayFeeCalc = Math.ceil(diffInDays - rentalIdFiltered.rows[0].daysRented) * (rentalIdFiltered.rows[0].originalPrice/rentalIdFiltered.rows[0].daysRented);
+                        
+            await connection.query(
+                'UPDATE rentals SET "delayFee" = $1 WHERE id = $2 ;', [delayFeeCalc,id]
+            );
+        }
+
+        res.sendStatus(200);
     } catch (error) {
         res.status(500).send(error.message);
     }
