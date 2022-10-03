@@ -2,9 +2,49 @@ import { connection } from '../database.js';
 import dayjs from 'dayjs';
 
 export async function getRentals (req, res) {
+    const { customerId, gameId } = req.query;
+    
     try {
+        const rentals = await connection.query(
+            'SELECT rentals.*,customers.id,customers.name AS "customerName",games.id,games.name,games."categoryId",categories.name AS "categoryName" FROM rentals JOIN customers ON rentals."customerId"=customers.id JOIN games ON rentals."gameId"=games.id JOIN categories ON games."categoryId"=categories.id;'
+        );
         
-        res.send('OKKK');
+        const rentalsList = rentals.rows.map( obj => 
+            (
+                {
+                    id: obj.id,
+                    customerId: obj.customerId,
+                    gameId: obj.gameId,
+                    rentDate: dayjs(obj.rentDate).format('YYYY-MM-DD'),
+                    daysRented: obj.daysRented,
+                    returnDate: obj.returnDate,
+                    originalPrice: obj.originalPrice,
+                    delayFee: obj.delayFee,
+                    customer: {
+                        id: obj.customerId,
+                        name: obj.customerName 
+                    },
+                    game:{
+                        id: obj.gameId,
+                        name: obj.name,
+                        categoryId: obj.categoryId,
+                        categoryName: obj.categoryName
+                    }
+                }
+            )
+        );
+
+        if(customerId) {
+            const rentalsCustomer = rentalsList.filter(value =>  value.customerId === Number(customerId));
+            return res.send(rentalsCustomer)
+        }
+
+        if(gameId) {
+            const rentalsGamesCustomer = rentalsList.filter(value =>  value.gameId === Number(gameId));
+            return res.send(rentalsGamesCustomer)
+        }
+
+        res.send(rentalsList);
     } catch (error) {
         res.status(500).send(error.message);
     }
